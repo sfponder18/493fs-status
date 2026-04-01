@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>493 FS Status Board</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: #f5f4f1;
+      color: #2c2416;
+      min-height: 100vh;
+    }
+
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Password Gate */
+    #gate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    #gate h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    #gate form {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    #gate input[type="password"] {
+      padding: 0.6rem 1rem;
+      border: 2px solid #2c2416;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      background: #fff;
+      outline: none;
+    }
+
+    #gate input[type="password"]:focus {
+      border-color: #b8922e;
+    }
+
+    #gate button {
+      padding: 0.6rem 1.2rem;
+      background: #2c2416;
+      color: #f5f4f1;
+      border: none;
+      border-radius: 6px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    #gate button:hover { background: #b8922e; }
+
+    #gate .error {
+      color: #c0392b;
+      font-size: 0.85rem;
+      font-weight: 500;
+      min-height: 1.2em;
+    }
+
+    /* Dashboard */
+    #dashboard { display: none; padding: 2rem; max-width: 960px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    header .squadron {
+      font-size: 0.85rem;
+      color: #7a7060;
+      font-weight: 500;
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: #fff;
+      border: 1px solid #e0ddd6;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+    }
+
+    .stat .num {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7a7060;
+      font-weight: 600;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filters button {
+      padding: 0.4rem 0.9rem;
+      border: 1.5px solid #2c2416;
+      border-radius: 20px;
+      background: transparent;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #2c2416;
+    }
+
+    .filters button.active,
+    .filters button:hover {
+      background: #2c2416;
+      color: #f5f4f1;
+    }
+
+    /* Project Cards */
+    .projects { display: flex; flex-direction: column; gap: 1rem; }
+
+    .project {
+      background: #fff;
+      border: 1px solid #e0ddd6;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .project-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.status-not-started { background: #e0ddd6; color: #2c2416; }
+    .badge.status-planning { background: #d6e4f0; color: #1a3a5c; }
+    .badge.status-in-progress { background: #fef3cd; color: #856404; }
+    .badge.status-complete { background: #d4edda; color: #155724; }
+    .badge.status-on-hold { background: #f8d7da; color: #721c24; }
+
+    .badge.priority-high { background: #c0392b; color: #fff; }
+    .badge.priority-medium { background: #b8922e; color: #fff; }
+    .badge.priority-low { background: #7a7060; color: #fff; }
+
+    .project-details {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.3rem 0.8rem;
+      font-size: 0.88rem;
+    }
+
+    .project-details dt {
+      font-weight: 600;
+      color: #7a7060;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      padding-top: 0.15rem;
+    }
+
+    .project-details dd { line-height: 1.45; }
+
+    .overdue { color: #c0392b; font-weight: 600; }
+    .deadline-soon { color: #b8922e; font-weight: 600; }
+
+    .file-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .file-links a {
+      font-size: 0.82rem;
+      color: #b8922e;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 1px solid transparent;
+    }
+
+    .file-links a:hover { border-bottom-color: #b8922e; }
+
+    .empty-state {
+      text-align: center;
+      color: #7a7060;
+      padding: 3rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    .updated-at {
+      text-align: right;
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Password Gate -->
+  <div id="gate">
+    <h1>493 FS Status Board</h1>
+    <form id="login-form">
+      <input type="password" id="pw" placeholder="Password" autocomplete="off" autofocus>
+      <button type="submit">Enter</button>
+    </form>
+    <div class="error" id="gate-error"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <header>
+      <h1>493 FS Status Board</h1>
+      <span class="squadron" id="squadron-label"></span>
+    </header>
+
+    <div class="stats" id="stats"></div>
+    <div class="filters" id="filters">
+      <button class="active" data-filter="active">Active</button>
+      <button data-filter="all">All</button>
+      <button data-filter="on hold">On Hold</button>
+      <button data-filter="complete">Done</button>
+    </div>
+    <div class="projects" id="projects"></div>
+    <div class="updated-at" id="updated-at"></div>
+  </div>
+
+<script>
+  // --- Config ---
+  const PASSWORD_HASH = "d7985a2b68ea9679c5c63693c898386e05dce64510c9c00571aec55024dfe3a6";
+  const DATA_URL = "./projects.json";
+  const REFRESH_INTERVAL = 60000;
+
+  // --- State ---
+  let currentFilter = "active";
+  let projectData = null;
+
+  // --- Auth ---
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+  }
+
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const pw = document.getElementById("pw").value;
+    const hash = await sha256(pw);
+    if (hash === PASSWORD_HASH) {
+      sessionStorage.setItem("authed", "1");
+      showDashboard();
+    } else {
+      document.getElementById("gate-error").textContent = "Incorrect password.";
+    }
+  });
+
+  // --- Init ---
+  if (sessionStorage.getItem("authed") === "1") {
+    showDashboard();
+  }
+
+  function showDashboard() {
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadData();
+    if (REFRESH_INTERVAL > 0) {
+      setInterval(loadData, REFRESH_INTERVAL);
+    }
+  }
+
+  // --- Data ---
+  async function loadData() {
+    try {
+      const res = await fetch(DATA_URL + "?t=" + Date.now());
+      projectData = await res.json();
+      render();
+    } catch (err) {
+      console.error("Failed to load project data:", err);
+    }
+  }
+
+  // --- Render ---
+  function render() {
+    if (!projectData) return;
+
+    document.getElementById("squadron-label").textContent = projectData.squadron || "";
+
+    const projects = projectData.projects || [];
+
+    // Stats
+    const total = projects.length;
+    const active = projects.filter(p => ["not started", "planning", "in progress"].includes(p.status)).length;
+    const hold = projects.filter(p => p.status === "on hold").length;
+    const done = projects.filter(p => p.status === "complete").length;
+
+    document.getElementById("stats").innerHTML = `
+      <div class="stat"><span class="num">${total}</span><span class="label">Total</span></div>
+      <div class="stat"><span class="num">${active}</span><span class="label">Active</span></div>
+      <div class="stat"><span class="num">${hold}</span><span class="label">Hold</span></div>
+      <div class="stat"><span class="num">${done}</span><span class="label">Done</span></div>
+    `;
+
+    // Filter
+    let filtered;
+    if (currentFilter === "all") filtered = projects;
+    else if (currentFilter === "active") filtered = projects.filter(p => ["not started", "planning", "in progress"].includes(p.status));
+    else if (currentFilter === "on hold") filtered = projects.filter(p => p.status === "on hold");
+    else if (currentFilter === "complete") filtered = projects.filter(p => p.status === "complete");
+    else filtered = projects;
+
+    // Sort: high > medium > low
+    const prioOrder = { high: 0, medium: 1, low: 2 };
+    filtered.sort((a, b) => (prioOrder[a.priority] ?? 9) - (prioOrder[b.priority] ?? 9));
+
+    const container = document.getElementById("projects");
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No projects to display.</div>';
+    } else {
+      container.innerHTML = filtered.map(renderProject).join("");
+    }
+
+    // Updated timestamp
+    const ts = projectData.updated ? new Date(projectData.updated).toLocaleString() : "";
+    document.getElementById("updated-at").textContent = ts ? "Data updated: " + ts : "";
+  }
+
+  function renderProject(p) {
+    const statusClass = "status-" + (p.status || "").replace(/\s+/g, "-");
+    const prioClass = "priority-" + (p.priority || "low");
+
+    let dueDateHtml = "";
+    if (p.dueDate) {
+      const due = new Date(p.dueDate);
+      const now = new Date();
+      const daysLeft = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+      let cls = "";
+      let suffix = "";
+      if (p.status !== "complete") {
+        if (daysLeft < 0) { cls = "overdue"; suffix = " (OVERDUE)"; }
+        else if (daysLeft <= 7) { cls = "deadline-soon"; suffix = ` (${daysLeft}d left)`; }
+      }
+      dueDateHtml = `<dt>Due</dt><dd class="${cls}">${p.dueDate}${suffix}</dd>`;
+    }
+
+    const filesHtml = (p.files && p.files.length > 0)
+      ? `<dt>Files</dt><dd class="file-links">${p.files.map(f => `<a href="${escHtml(f.url)}" target="_blank" rel="noopener">${escHtml(f.label)}</a>`).join(" ")}</dd>`
+      : "";
+
+    return `
+      <div class="project">
+        <div class="project-header">
+          <span class="project-name">${escHtml(p.name)}</span>
+          <span class="badge ${statusClass}">${escHtml(p.status)}</span>
+          <span class="badge ${prioClass}">${escHtml(p.priority)}</span>
+          ${p.category ? `<span class="badge" style="background:#e0ddd6;color:#2c2416">${escHtml(p.category)}</span>` : ""}
+        </div>
+        <dl class="project-details">
+          ${p.milestone ? `<dt>Milestone</dt><dd>${escHtml(p.milestone)}</dd>` : ""}
+          ${dueDateHtml}
+          ${p.funding ? `<dt>Funding</dt><dd>${escHtml(p.funding)}</dd>` : ""}
+          ${p.blockers ? `<dt>Blockers</dt><dd>${escHtml(p.blockers)}</dd>` : ""}
+          ${p.notes ? `<dt>Notes</dt><dd>${escHtml(p.notes)}</dd>` : ""}
+          ${filesHtml}
+        </dl>
+      </div>
+    `;
+  }
+
+  function escHtml(str) {
+    if (!str) return "";
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // --- Filter buttons ---
+  document.getElementById("filters").addEventListener("click", (e) => {
+    if (e.target.tagName !== "BUTTON") return;
+    currentFilter = e.target.dataset.filter;
+    document.querySelectorAll(".filters button").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    render();
+  });
+</script>
+
+</body>
+</html>
