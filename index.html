@@ -132,11 +132,19 @@
       font-weight: 600;
     }
 
-    /* Filters */
+    /* Filters + actions row */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
     .filters {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
 
@@ -157,6 +165,44 @@
       background: #2c2416;
       color: #f5f4f1;
     }
+
+    .btn {
+      padding: 0.45rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #b8922e;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #a07e24; }
+
+    .btn-sm {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #2c2416;
+      color: #2c2416;
+    }
+
+    .btn-outline:hover { background: #2c2416; color: #f5f4f1; }
+
+    .btn-danger {
+      background: transparent;
+      border: 1.5px solid #c0392b;
+      color: #c0392b;
+    }
+
+    .btn-danger:hover { background: #c0392b; color: #fff; }
 
     /* Project Cards */
     .projects { display: flex; flex-direction: column; gap: 1rem; }
@@ -179,6 +225,12 @@
     .project-name {
       font-size: 1.05rem;
       font-weight: 700;
+    }
+
+    .project-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 0.4rem;
     }
 
     .badge {
@@ -248,6 +300,104 @@
       margin-top: 1.5rem;
       font-family: 'JetBrains Mono', monospace;
     }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.8rem;
+      width: 90%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-group {
+      margin-bottom: 0.8rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7a7060;
+      margin-bottom: 0.25rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem 0.7rem;
+      border: 1.5px solid #e0ddd6;
+      border-radius: 6px;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.88rem;
+      background: #f5f4f1;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #b8922e;
+    }
+
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.2rem;
+    }
+
+    .saving-indicator {
+      font-size: 0.8rem;
+      color: #7a7060;
+      margin-right: auto;
+      align-self: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #2c2416;
+      color: #f5f4f1;
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -270,25 +420,118 @@
     </header>
 
     <div class="stats" id="stats"></div>
-    <div class="filters" id="filters">
-      <button class="active" data-filter="active">Active</button>
-      <button data-filter="all">All</button>
-      <button data-filter="on hold">On Hold</button>
-      <button data-filter="complete">Done</button>
+    <div class="toolbar">
+      <div class="filters" id="filters">
+        <button class="active" data-filter="active">Active</button>
+        <button data-filter="all">All</button>
+        <button data-filter="on hold">On Hold</button>
+        <button data-filter="complete">Done</button>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Project</button>
     </div>
     <div class="projects" id="projects"></div>
     <div class="updated-at" id="updated-at"></div>
   </div>
+
+  <!-- Project Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">Add Project</h2>
+      <form id="project-form">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="f-name" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input type="text" id="f-category" placeholder="e.g. Facilities, Training, Ops">
+        </div>
+        <div style="display:flex;gap:0.8rem">
+          <div class="form-group" style="flex:1">
+            <label>Status</label>
+            <select id="f-status">
+              <option value="not started">Not Started</option>
+              <option value="planning">Planning</option>
+              <option value="in progress">In Progress</option>
+              <option value="complete">Complete</option>
+              <option value="on hold">On Hold</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Priority</label>
+            <select id="f-priority">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Milestone</label>
+          <textarea id="f-milestone" placeholder="Current status and what's next"></textarea>
+        </div>
+        <div style="display:flex;gap:0.8rem">
+          <div class="form-group" style="flex:1">
+            <label>Due Date</label>
+            <input type="date" id="f-due">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Funding</label>
+            <input type="text" id="f-funding" placeholder="e.g. $200 Booster Club">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Blockers</label>
+          <textarea id="f-blockers" placeholder="Any blockers or risks"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="Additional context"></textarea>
+        </div>
+        <div class="modal-actions">
+          <span class="saving-indicator" id="saving-indicator"></span>
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="modal-submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Token Modal -->
+  <div class="modal-overlay" id="token-overlay">
+    <div class="modal">
+      <h2>GitHub Token</h2>
+      <p style="font-size:0.85rem;color:#7a7060;margin-bottom:1rem">
+        Enter a GitHub personal access token with <strong>Contents: Read and write</strong> permission on this repo. It's stored in your browser session only.
+      </p>
+      <div class="form-group">
+        <label>Token</label>
+        <input type="password" id="f-token" placeholder="ghp_... or github_pat_...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeTokenModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveToken()">Save Token</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
 <script>
   // --- Config ---
   const PASSWORD_HASH = "d7985a2b68ea9679c5c63693c898386e05dce64510c9c00571aec55024dfe3a6";
   const DATA_URL = "./projects.json";
   const REFRESH_INTERVAL = 60000;
+  const REPO_OWNER = "sfponder18";
+  const REPO_NAME = "493fs-status";
+  const FILE_PATH = "projects.json";
 
   // --- State ---
   let currentFilter = "active";
   let projectData = null;
+  let editingIndex = -1; // -1 = adding new
+  let pendingAction = null;
 
   // --- Auth ---
   async function sha256(str) {
@@ -308,7 +551,6 @@
     }
   });
 
-  // --- Init ---
   if (sessionStorage.getItem("authed") === "1") {
     showDashboard();
   }
@@ -317,9 +559,7 @@
     document.getElementById("gate").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     loadData();
-    if (REFRESH_INTERVAL > 0) {
-      setInterval(loadData, REFRESH_INTERVAL);
-    }
+    if (REFRESH_INTERVAL > 0) setInterval(loadData, REFRESH_INTERVAL);
   }
 
   // --- Data ---
@@ -333,6 +573,186 @@
     }
   }
 
+  // --- GitHub API ---
+  function getToken() {
+    return sessionStorage.getItem("gh_token");
+  }
+
+  function requireToken(callback) {
+    if (getToken()) { callback(); return; }
+    pendingAction = callback;
+    document.getElementById("token-overlay").classList.add("open");
+  }
+
+  function saveToken() {
+    const token = document.getElementById("f-token").value.trim();
+    if (!token) return;
+    sessionStorage.setItem("gh_token", token);
+    closeTokenModal();
+    if (pendingAction) { pendingAction(); pendingAction = null; }
+  }
+
+  function closeTokenModal() {
+    document.getElementById("token-overlay").classList.remove("open");
+    document.getElementById("f-token").value = "";
+  }
+
+  async function commitProjects(message) {
+    const token = getToken();
+    if (!token) return;
+
+    // Get current file SHA
+    const metaRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+      headers: { "Authorization": "token " + token }
+    });
+    if (!metaRes.ok) throw new Error("Failed to read repo file. Check your token permissions.");
+    const meta = await metaRes.json();
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(projectData, null, 2) + "\n")));
+
+    const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": "token " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: message,
+        content: content,
+        sha: meta.sha
+      })
+    });
+
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || "Failed to save");
+    }
+  }
+
+  // --- Modal ---
+  function openAddModal() {
+    editingIndex = -1;
+    document.getElementById("modal-title").textContent = "Add Project";
+    document.getElementById("modal-submit").textContent = "Add";
+    clearForm();
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  function openEditModal(idx) {
+    editingIndex = idx;
+    const p = projectData.projects[idx];
+    document.getElementById("modal-title").textContent = "Edit Project";
+    document.getElementById("modal-submit").textContent = "Save";
+    document.getElementById("f-name").value = p.name || "";
+    document.getElementById("f-category").value = p.category || "";
+    document.getElementById("f-status").value = p.status || "not started";
+    document.getElementById("f-priority").value = p.priority || "medium";
+    document.getElementById("f-milestone").value = p.milestone || "";
+    document.getElementById("f-due").value = p.dueDate || "";
+    document.getElementById("f-funding").value = p.funding || "";
+    document.getElementById("f-blockers").value = p.blockers || "";
+    document.getElementById("f-notes").value = p.notes || "";
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("open");
+    document.getElementById("saving-indicator").textContent = "";
+    clearForm();
+  }
+
+  function clearForm() {
+    document.getElementById("f-name").value = "";
+    document.getElementById("f-category").value = "";
+    document.getElementById("f-status").value = "not started";
+    document.getElementById("f-priority").value = "medium";
+    document.getElementById("f-milestone").value = "";
+    document.getElementById("f-due").value = "";
+    document.getElementById("f-funding").value = "";
+    document.getElementById("f-blockers").value = "";
+    document.getElementById("f-notes").value = "";
+  }
+
+  function getFormData() {
+    const p = {
+      name: document.getElementById("f-name").value.trim(),
+      status: document.getElementById("f-status").value,
+      priority: document.getElementById("f-priority").value,
+      updated: new Date().toISOString()
+    };
+    const cat = document.getElementById("f-category").value.trim();
+    const ms = document.getElementById("f-milestone").value.trim();
+    const due = document.getElementById("f-due").value;
+    const fund = document.getElementById("f-funding").value.trim();
+    const blk = document.getElementById("f-blockers").value.trim();
+    const notes = document.getElementById("f-notes").value.trim();
+    if (cat) p.category = cat;
+    if (ms) p.milestone = ms;
+    if (due) p.dueDate = due;
+    if (fund) p.funding = fund;
+    if (blk) p.blockers = blk;
+    if (notes) p.notes = notes;
+    return p;
+  }
+
+  document.getElementById("project-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = getFormData();
+    if (!data.name) return;
+
+    requireToken(async () => {
+      const indicator = document.getElementById("saving-indicator");
+      indicator.textContent = "Saving...";
+      try {
+        if (editingIndex >= 0) {
+          // Preserve files array from existing project
+          const existing = projectData.projects[editingIndex];
+          if (existing.files) data.files = existing.files;
+          projectData.projects[editingIndex] = data;
+        } else {
+          projectData.projects.push(data);
+        }
+        projectData.updated = new Date().toISOString();
+
+        const action = editingIndex >= 0 ? "Update" : "Add";
+        await commitProjects(`${action} project: ${data.name}`);
+        closeModal();
+        render();
+        toast(`Project ${editingIndex >= 0 ? "updated" : "added"}`);
+      } catch (err) {
+        indicator.textContent = "Error: " + err.message;
+        // Reload to revert local changes
+        await loadData();
+      }
+    });
+  });
+
+  async function deleteProject(idx) {
+    const name = projectData.projects[idx].name;
+    if (!confirm(`Delete "${name}"?`)) return;
+
+    requireToken(async () => {
+      try {
+        projectData.projects.splice(idx, 1);
+        projectData.updated = new Date().toISOString();
+        await commitProjects(`Remove project: ${name}`);
+        render();
+        toast("Project deleted");
+      } catch (err) {
+        toast("Error: " + err.message);
+        await loadData();
+      }
+    });
+  }
+
+  // --- Toast ---
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2500);
+  }
+
   // --- Render ---
   function render() {
     if (!projectData) return;
@@ -341,7 +761,6 @@
 
     const projects = projectData.projects || [];
 
-    // Stats
     const total = projects.length;
     const active = projects.filter(p => ["not started", "planning", "in progress"].includes(p.status)).length;
     const hold = projects.filter(p => p.status === "on hold").length;
@@ -354,15 +773,13 @@
       <div class="stat"><span class="num">${done}</span><span class="label">Done</span></div>
     `;
 
-    // Filter
     let filtered;
-    if (currentFilter === "all") filtered = projects;
-    else if (currentFilter === "active") filtered = projects.filter(p => ["not started", "planning", "in progress"].includes(p.status));
-    else if (currentFilter === "on hold") filtered = projects.filter(p => p.status === "on hold");
-    else if (currentFilter === "complete") filtered = projects.filter(p => p.status === "complete");
-    else filtered = projects;
+    if (currentFilter === "all") filtered = projects.map((p, i) => ({ ...p, _idx: i }));
+    else if (currentFilter === "active") filtered = projects.map((p, i) => ({ ...p, _idx: i })).filter(p => ["not started", "planning", "in progress"].includes(p.status));
+    else if (currentFilter === "on hold") filtered = projects.map((p, i) => ({ ...p, _idx: i })).filter(p => p.status === "on hold");
+    else if (currentFilter === "complete") filtered = projects.map((p, i) => ({ ...p, _idx: i })).filter(p => p.status === "complete");
+    else filtered = projects.map((p, i) => ({ ...p, _idx: i }));
 
-    // Sort: high > medium > low
     const prioOrder = { high: 0, medium: 1, low: 2 };
     filtered.sort((a, b) => (prioOrder[a.priority] ?? 9) - (prioOrder[b.priority] ?? 9));
 
@@ -373,7 +790,6 @@
       container.innerHTML = filtered.map(renderProject).join("");
     }
 
-    // Updated timestamp
     const ts = projectData.updated ? new Date(projectData.updated).toLocaleString() : "";
     document.getElementById("updated-at").textContent = ts ? "Data updated: " + ts : "";
   }
@@ -381,6 +797,7 @@
   function renderProject(p) {
     const statusClass = "status-" + (p.status || "").replace(/\s+/g, "-");
     const prioClass = "priority-" + (p.priority || "low");
+    const idx = p._idx;
 
     let dueDateHtml = "";
     if (p.dueDate) {
@@ -407,6 +824,10 @@
           <span class="badge ${statusClass}">${escHtml(p.status)}</span>
           <span class="badge ${prioClass}">${escHtml(p.priority)}</span>
           ${p.category ? `<span class="badge" style="background:#e0ddd6;color:#2c2416">${escHtml(p.category)}</span>` : ""}
+          <span class="project-actions">
+            <button class="btn btn-sm btn-outline" onclick="openEditModal(${idx})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteProject(${idx})">Del</button>
+          </span>
         </div>
         <dl class="project-details">
           ${p.milestone ? `<dt>Milestone</dt><dd>${escHtml(p.milestone)}</dd>` : ""}

@@ -1,6 +1,6 @@
 # 493 FS Status Board
 
-A password-protected project status dashboard for the 493rd Fighter Squadron, hosted on GitHub Pages.
+Project status dashboard for the 493rd Fighter Squadron, hosted on GitHub Pages.
 
 **Live URL:** [https://sfponder18.github.io/493fs-status/](https://sfponder18.github.io/493fs-status/)
 
@@ -10,24 +10,11 @@ A password-protected project status dashboard for the 493rd Fighter Squadron, ho
 2. Enable GitHub Pages: **Settings → Pages → Source: Deploy from branch → main → / (root) → Save**
 3. Share the Pages URL with your team
 
-## Default Password
+## Editing Projects
 
-`reapers`
+Click **+ Add Project** on the dashboard to add a new project, or click **Edit** on any existing project card. On first edit you'll be prompted for a GitHub personal access token (stored in your browser session only).
 
-### Changing the Password
-
-Open your browser console and run:
-
-```js
-crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_NEW_PASSWORD'))
-  .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-```
-
-Replace the `PASSWORD_HASH` value at the top of the `<script>` in `index.html` with the output.
-
-## Updating Projects
-
-Edit `projects.json` — either locally and push, or directly on GitHub. The dashboard auto-refreshes every 60 seconds.
+To generate a token: **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens** — grant `Contents: Read and write` on this repo.
 
 ### Project Schema
 
@@ -69,8 +56,8 @@ Edit `projects.json` — either locally and push, or directly on GitHub. The das
 
 ## How It Works
 
-- `index.html` — Single-file dashboard with password gate and live rendering
-- `projects.json` — Project data (the only file you need to edit regularly)
-- Password is session-based (survives refresh, clears on browser close)
+- `index.html` — Single-file dashboard with inline editing via GitHub API
+- `projects.json` — Project data (auto-updated when you use the dashboard editor)
 - All rendering is client-side, no backend needed
 - GitHub Pages serves the static files
+- Dashboard auto-refreshes every 60 seconds
