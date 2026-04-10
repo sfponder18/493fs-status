@@ -635,6 +635,7 @@
   let projectData = null;
   let editingIndex = -1; // -1 = adding new
   let pendingAction = null;
+  const LOCAL_KEY = "493fs_projectData";
 
   // --- Auth ---
   async function sha256(str) {
@@ -666,13 +667,64 @@
   }
 
   // --- Data ---
+  function saveLocal() {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(projectData));
+  }
+
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  async function fetchFromAPI() {
+    const token = getToken();
+    if (!token) return null;
+    try {
+      const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+        headers: { "Authorization": "token " + token }
+      });
+      if (!res.ok) return null;
+      const meta = await res.json();
+      return JSON.parse(decodeURIComponent(escape(atob(meta.content))));
+    } catch { return null; }
+  }
+
   async function loadData() {
+    const local = loadLocal();
+
+    // If we have a token, fetch from GitHub API (always up-to-date, no CDN cache)
+    const apiData = await fetchFromAPI();
+    if (apiData) {
+      // Use whichever is newer: localStorage or GitHub API
+      if (local && local.updated && apiData.updated && new Date(local.updated) > new Date(apiData.updated)) {
+        projectData = local;
+      } else {
+        projectData = apiData;
+        saveLocal();
+      }
+      render();
+      return;
+    }
+
+    // No token yet — try static file, but don't let it overwrite newer local data
     try {
       const res = await fetch(DATA_URL + "?t=" + Date.now());
-      projectData = await res.json();
+      const serverData = await res.json();
+      if (local && local.updated && serverData.updated && new Date(local.updated) > new Date(serverData.updated)) {
+        projectData = local;
+      } else {
+        projectData = serverData;
+        saveLocal();
+      }
       render();
     } catch (err) {
       console.error("Failed to load project data:", err);
+      if (local) {
+        projectData = local;
+        render();
+      }
     }
   }
 
@@ -730,6 +782,7 @@
       const err = await putRes.json();
       throw new Error(err.message || "Failed to save");
     }
+    saveLocal();
   }
 
   // --- Modal ---
@@ -777,25 +830,18 @@
   }
 
   function getFormData() {
-    const p = {
+    return {
       name: document.getElementById("f-name").value.trim(),
+      category: document.getElementById("f-category").value.trim(),
       status: document.getElementById("f-status").value,
       priority: document.getElementById("f-priority").value,
+      milestone: document.getElementById("f-milestone").value.trim(),
+      dueDate: document.getElementById("f-due").value,
+      funding: document.getElementById("f-funding").value.trim(),
+      blockers: document.getElementById("f-blockers").value.trim(),
+      notes: document.getElementById("f-notes").value.trim(),
       updated: new Date().toISOString()
     };
-    const cat = document.getElementById("f-category").value.trim();
-    const ms = document.getElementById("f-milestone").value.trim();
-    const due = document.getElementById("f-due").value;
-    const fund = document.getElementById("f-funding").value.trim();
-    const blk = document.getElementById("f-blockers").value.trim();
-    const notes = document.getElementById("f-notes").value.trim();
-    if (cat) p.category = cat;
-    if (ms) p.milestone = ms;
-    if (due) p.dueDate = due;
-    if (fund) p.funding = fund;
-    if (blk) p.blockers = blk;
-    if (notes) p.notes = notes;
-    return p;
   }
 
   document.getElementById("project-form").addEventListener("submit", async (e) => {
@@ -813,9 +859,11 @@
           if (existing.files) data.files = existing.files;
           projectData.projects[editingIndex] = data;
         } else {
+          data.files = [];
           projectData.projects.push(data);
         }
         projectData.updated = new Date().toISOString();
+        saveLocal(); // persist immediately so data survives no matter what
 
         const action = editingIndex >= 0 ? "Update" : "Add";
         await commitProjects(`${action} project: ${data.name}`);
@@ -824,8 +872,7 @@
         toast(`Project ${editingIndex >= 0 ? "updated" : "added"}`);
       } catch (err) {
         indicator.textContent = "Error: " + err.message;
-        // Reload to revert local changes
-        await loadData();
+        render(); // re-render from in-memory data (already saved to localStorage)
       }
     });
   });
@@ -838,12 +885,13 @@
       try {
         projectData.projects.splice(idx, 1);
         projectData.updated = new Date().toISOString();
-        await commitProjects(`Remove project: ${name}`);
+        saveLocal(); // persist immediately
         render();
+        await commitProjects(`Remove project: ${name}`);
         toast("Project deleted");
       } catch (err) {
-        toast("Error: " + err.message);
-        await loadData();
+        toast("Error syncing to GitHub: " + err.message);
+        // Data is safe in localStorage, don't reload stale server data
       }
     });
   }
