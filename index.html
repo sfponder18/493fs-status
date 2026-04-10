@@ -495,6 +495,99 @@
     }
 
     .toast.show { opacity: 1; }
+
+    /* File uploads */
+    .file-upload-area {
+      border: 2px dashed #e0ddd6;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+    .file-upload-area:hover { border-color: #b8922e; }
+    .file-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-upload-area .upload-label {
+      font-size: 0.85rem;
+      color: #7a7060;
+      font-weight: 500;
+    }
+    .file-upload-area.uploading { opacity: 0.6; pointer-events: none; }
+
+    .file-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: #f5f4f1;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.82rem;
+    }
+    .file-item img.thumb {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #e0ddd6;
+    }
+    .file-item .file-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e0ddd6;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #2c2416;
+      text-transform: uppercase;
+    }
+    .file-item .file-label { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .file-remove {
+      background: none;
+      border: none;
+      color: #c0392b;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0 0.3rem;
+      line-height: 1;
+    }
+    .file-item .file-remove:hover { color: #922017; }
+
+    /* Detail view file grid */
+    .detail-files { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+    .detail-file-thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #e0ddd6;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .detail-file-thumb:hover { border-color: #b8922e; }
+    .detail-file-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      background: #f5f4f1;
+      border-radius: 6px;
+      color: #b8922e;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .detail-file-link:hover { background: #e0ddd6; }
   </style>
 </head>
 <body>
@@ -590,6 +683,14 @@
         <div class="form-group">
           <label>Notes</label>
           <textarea id="f-notes" placeholder="Additional context"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Files</label>
+          <div class="file-upload-area" id="file-upload-area">
+            <input type="file" id="f-file" accept="image/*,.pdf" multiple>
+            <span class="upload-label">Click or drag to upload images & PDFs</span>
+          </div>
+          <div class="file-list" id="file-list"></div>
         </div>
         <div class="modal-actions">
           <span class="saving-indicator" id="saving-indicator"></span>
@@ -785,18 +886,114 @@
     saveLocal();
   }
 
+  async function uploadFileToRepo(file, projectName) {
+    const token = getToken();
+    if (!token) throw new Error("No token");
+
+    const safeName = projectName.replace(/[^a-zA-Z0-9-_ ]/g, "").replace(/\s+/g, "-").toLowerCase();
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const filePath = `uploads/${safeName}/${fileName}`;
+
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const putRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": "token " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: `Upload: ${file.name} to ${projectName}`,
+        content: base64
+      })
+    });
+
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || "Upload failed");
+    }
+
+    const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${filePath}`;
+    const isImage = file.type.startsWith("image/");
+    return { label: file.name, url: rawUrl, type: isImage ? "image" : "pdf" };
+  }
+
+  // --- Modal file state ---
+  let modalFiles = []; // files attached to current project being edited
+
+  function renderFileList() {
+    const container = document.getElementById("file-list");
+    if (modalFiles.length === 0) { container.innerHTML = ""; return; }
+    container.innerHTML = modalFiles.map((f, i) => {
+      const icon = f.type === "image"
+        ? `<img class="thumb" src="${escHtml(f.url)}" alt="">`
+        : `<span class="file-icon">PDF</span>`;
+      return `<div class="file-item">
+        ${icon}
+        <span class="file-label">${escHtml(f.label)}</span>
+        <button class="file-remove" type="button" onclick="removeFile(${i})">&times;</button>
+      </div>`;
+    }).join("");
+  }
+
+  function removeFile(idx) {
+    modalFiles.splice(idx, 1);
+    renderFileList();
+  }
+
+  document.getElementById("f-file").addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const projectName = document.getElementById("f-name").value.trim();
+    if (!projectName) {
+      toast("Enter a project name before uploading files");
+      e.target.value = "";
+      return;
+    }
+
+    requireToken(async () => {
+      const area = document.getElementById("file-upload-area");
+      area.classList.add("uploading");
+      area.querySelector(".upload-label").textContent = "Uploading...";
+
+      for (const file of files) {
+        try {
+          const fileData = await uploadFileToRepo(file, projectName);
+          modalFiles.push(fileData);
+          renderFileList();
+        } catch (err) {
+          toast("Upload failed: " + err.message);
+        }
+      }
+
+      area.classList.remove("uploading");
+      area.querySelector(".upload-label").textContent = "Click or drag to upload images & PDFs";
+      e.target.value = "";
+    });
+  });
+
   // --- Modal ---
   function openAddModal() {
     editingIndex = -1;
+    modalFiles = [];
     document.getElementById("modal-title").textContent = "Add Project";
     document.getElementById("modal-submit").textContent = "Add";
     clearForm();
+    renderFileList();
     document.getElementById("modal-overlay").classList.add("open");
   }
 
   function openEditModal(idx) {
     editingIndex = idx;
     const p = projectData.projects[idx];
+    modalFiles = (p.files || []).map(f => ({ ...f }));
     document.getElementById("modal-title").textContent = "Edit Project";
     document.getElementById("modal-submit").textContent = "Save";
     document.getElementById("f-name").value = p.name || "";
@@ -808,6 +1005,7 @@
     document.getElementById("f-funding").value = p.funding || "";
     document.getElementById("f-blockers").value = p.blockers || "";
     document.getElementById("f-notes").value = p.notes || "";
+    renderFileList();
     document.getElementById("modal-overlay").classList.add("open");
   }
 
@@ -840,6 +1038,7 @@
       funding: document.getElementById("f-funding").value.trim(),
       blockers: document.getElementById("f-blockers").value.trim(),
       notes: document.getElementById("f-notes").value.trim(),
+      files: modalFiles.map(f => ({ label: f.label, url: f.url, type: f.type || "pdf" })),
       updated: new Date().toISOString()
     };
   }
@@ -854,12 +1053,8 @@
       indicator.textContent = "Saving...";
       try {
         if (editingIndex >= 0) {
-          // Preserve files array from existing project
-          const existing = projectData.projects[editingIndex];
-          if (existing.files) data.files = existing.files;
           projectData.projects[editingIndex] = data;
         } else {
-          data.files = [];
           projectData.projects.push(data);
         }
         projectData.updated = new Date().toISOString();
@@ -965,7 +1160,10 @@
     }
 
     const filesHtml = (p.files && p.files.length > 0)
-      ? `<dt>Files</dt><dd class="file-links">${p.files.map(f => `<a href="${escHtml(f.url)}" target="_blank" rel="noopener">${escHtml(f.label)}</a>`).join(" ")}</dd>`
+      ? `<dt>Files</dt><dd class="file-links">${p.files.map(f => {
+          if (f.type === "image") return `<a href="${escHtml(f.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><img src="${escHtml(f.url)}" alt="${escHtml(f.label)}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;vertical-align:middle"></a>`;
+          return `<a href="${escHtml(f.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escHtml(f.label)}</a>`;
+        }).join(" ")}</dd>`
       : "";
 
     return `
@@ -1024,7 +1222,12 @@
     }
 
     const filesHtml = (p.files && p.files.length > 0)
-      ? p.files.map(f => `<a href="${escHtml(f.url)}" target="_blank" rel="noopener" style="color:#b8922e;font-weight:600;text-decoration:none">${escHtml(f.label)}</a>`).join(", ")
+      ? `<div class="detail-files">${p.files.map(f => {
+          if (f.type === "image") {
+            return `<a href="${escHtml(f.url)}" target="_blank" rel="noopener"><img class="detail-file-thumb" src="${escHtml(f.url)}" alt="${escHtml(f.label)}" title="${escHtml(f.label)}"></a>`;
+          }
+          return `<a class="detail-file-link" href="${escHtml(f.url)}" target="_blank" rel="noopener">PDF ${escHtml(f.label)}</a>`;
+        }).join("")}</div>`
       : "";
 
     const field = (label, value, fullWidth) => {
