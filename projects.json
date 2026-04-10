@@ -1,18 +1,13 @@
 {
-  "updated": "2026-04-10T00:00:00Z",
+  "updated": "2026-04-10T09:01:35.323Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "category": "",
       "status": "not started",
       "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "updated": "2026-04-10T08:58:06.449Z",
+      "category": "Snacko",
       "files": []
     },
     {
