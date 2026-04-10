@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T09:47:52.811Z",
+  "updated": "2026-04-10T09:51:15.920Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
@@ -52,15 +52,14 @@
     },
     {
       "name": "Do-It Board",
-      "category": "",
-      "status": "not started",
-      "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "status": "planning",
+      "priority": "low",
+      "updated": "2026-04-10T09:51:15.919Z",
+      "category": "Facilities",
+      "milestone": "Design to copy \"Raven\" naming board for all F-35 Do-Its",
+      "dueDate": "2026-04-30",
+      "blockers": "None",
+      "notes": "Plan is to contact wood shop, have similar design made for our board. Patches for each Do-It on board",
       "files": []
     },
     {
