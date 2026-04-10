@@ -1,17 +1,13 @@
 {
-  "updated": "2026-04-10T09:43:26.483Z",
+  "updated": "2026-04-10T09:44:02.437Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "status": "in progress",
+      "status": "not started",
       "priority": "medium",
-      "updated": "2026-04-10T09:43:26.483Z",
+      "updated": "2026-04-10T09:01:45.434Z",
       "category": "Snacko",
-      "milestone": "Waiting on design. Invoice generated and ready to be paid",
-      "dueDate": "2026-04-17",
-      "funding": "$924.95",
-      "blockers": "Design approval",
       "files": []
     },
     {
@@ -42,15 +38,12 @@
     },
     {
       "name": "Reaper Tracker",
-      "category": "",
-      "status": "not started",
+      "status": "planning",
       "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "updated": "2026-04-10T09:44:02.437Z",
+      "category": "Snacko",
+      "milestone": "Design document to F-35 Reapers.",
+      "dueDate": "2026-04-30",
       "files": []
     },
     {
