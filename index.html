@@ -286,6 +286,9 @@
 
     .file-links a:hover { border-bottom-color: #b8922e; }
 
+    .project { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+    .project:hover { border-color: #b8922e; box-shadow: 0 2px 8px rgba(184,146,46,0.12); }
+
     .empty-state {
       text-align: center;
       color: #7a7060;
@@ -299,6 +302,100 @@
       color: #999;
       margin-top: 1.5rem;
       font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Project Detail View */
+    #detail-view { display: none; padding: 2rem; max-width: 960px; margin: 0 auto; }
+    #detail-view.open { display: block; }
+
+    .detail-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7a7060;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: 'IBM Plex Sans', sans-serif;
+      margin-bottom: 1.5rem;
+      padding: 0;
+    }
+    .detail-back:hover { color: #2c2416; }
+
+    .detail-card {
+      background: #fff;
+      border: 1px solid #e0ddd6;
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .detail-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .detail-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    .detail-field {
+      background: #f5f4f1;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+    }
+
+    .detail-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .detail-field-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7a7060;
+      margin-bottom: 0.3rem;
+    }
+
+    .detail-field-value {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .detail-field-value.empty {
+      color: #b0a898;
+      font-style: italic;
+    }
+
+    .detail-updated {
+      font-size: 0.75rem;
+      color: #999;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 1.2rem;
+      text-align: right;
     }
 
     /* Modal */
@@ -431,6 +528,12 @@
     </div>
     <div class="projects" id="projects"></div>
     <div class="updated-at" id="updated-at"></div>
+  </div>
+
+  <!-- Project Detail View -->
+  <div id="detail-view">
+    <button class="detail-back" onclick="closeDetail()">&larr; Back to Board</button>
+    <div id="detail-content"></div>
   </div>
 
   <!-- Project Modal -->
@@ -818,15 +921,15 @@
       : "";
 
     return `
-      <div class="project">
+      <div class="project" onclick="openDetail(${idx})">
         <div class="project-header">
           <span class="project-name">${escHtml(p.name)}</span>
           <span class="badge ${statusClass}">${escHtml(p.status)}</span>
           <span class="badge ${prioClass}">${escHtml(p.priority)}</span>
           ${p.category ? `<span class="badge" style="background:#e0ddd6;color:#2c2416">${escHtml(p.category)}</span>` : ""}
           <span class="project-actions">
-            <button class="btn btn-sm btn-outline" onclick="openEditModal(${idx})">Edit</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteProject(${idx})">Del</button>
+            <button class="btn btn-sm btn-outline" onclick="event.stopPropagation();openEditModal(${idx})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteProject(${idx})">Del</button>
           </span>
         </div>
         <dl class="project-details">
@@ -844,6 +947,76 @@
   function escHtml(str) {
     if (!str) return "";
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // --- Detail View ---
+  function openDetail(idx) {
+    const p = projectData.projects[idx];
+    if (!p) return;
+
+    document.getElementById("dashboard").style.display = "none";
+    const view = document.getElementById("detail-view");
+    view.style.display = "block";
+
+    const statusClass = "status-" + (p.status || "").replace(/\s+/g, "-");
+    const prioClass = "priority-" + (p.priority || "low");
+
+    let dueDateHtml = "";
+    if (p.dueDate) {
+      const due = new Date(p.dueDate);
+      const now = new Date();
+      const daysLeft = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+      let cls = "";
+      let suffix = "";
+      if (p.status !== "complete") {
+        if (daysLeft < 0) { cls = "overdue"; suffix = " (OVERDUE)"; }
+        else if (daysLeft <= 7) { cls = "deadline-soon"; suffix = ` (${daysLeft}d left)`; }
+      }
+      dueDateHtml = `<span class="${cls}">${escHtml(p.dueDate)}${suffix}</span>`;
+    }
+
+    const filesHtml = (p.files && p.files.length > 0)
+      ? p.files.map(f => `<a href="${escHtml(f.url)}" target="_blank" rel="noopener" style="color:#b8922e;font-weight:600;text-decoration:none">${escHtml(f.label)}</a>`).join(", ")
+      : "";
+
+    const field = (label, value, fullWidth) => {
+      const cls = fullWidth ? "detail-field full-width" : "detail-field";
+      const val = value
+        ? `<div class="detail-field-value">${value}</div>`
+        : `<div class="detail-field-value empty">Not set</div>`;
+      return `<div class="${cls}"><div class="detail-field-label">${label}</div>${val}</div>`;
+    };
+
+    const updatedStr = p.updated ? new Date(p.updated).toLocaleString() : "Unknown";
+
+    document.getElementById("detail-content").innerHTML = `
+      <div class="detail-card">
+        <div class="detail-title-row">
+          <span class="detail-title">${escHtml(p.name)}</span>
+          <span class="badge ${statusClass}">${escHtml(p.status)}</span>
+          <span class="badge ${prioClass}">${escHtml(p.priority)}</span>
+          ${p.category ? `<span class="badge" style="background:#e0ddd6;color:#2c2416">${escHtml(p.category)}</span>` : ""}
+          <span class="detail-actions">
+            <button class="btn btn-sm btn-outline" onclick="closeDetail();openEditModal(${idx})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteProject(${idx});closeDetail();">Del</button>
+          </span>
+        </div>
+        <div class="detail-grid">
+          ${field("Milestone", p.milestone ? escHtml(p.milestone) : "", true)}
+          ${field("Due Date", dueDateHtml)}
+          ${field("Funding", p.funding ? escHtml(p.funding) : "")}
+          ${field("Blockers", p.blockers ? escHtml(p.blockers) : "", true)}
+          ${field("Notes", p.notes ? escHtml(p.notes) : "", true)}
+          ${filesHtml ? field("Files", filesHtml, true) : ""}
+        </div>
+        <div class="detail-updated">Last updated: ${updatedStr}</div>
+      </div>
+    `;
+  }
+
+  function closeDetail() {
+    document.getElementById("detail-view").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
   }
 
   // --- Filter buttons ---
