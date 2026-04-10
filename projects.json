@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T09:01:45.434Z",
+  "updated": "2026-04-10T09:14:23.726Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
@@ -12,15 +12,15 @@
     },
     {
       "name": "Stationery",
-      "category": "",
-      "status": "not started",
-      "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "status": "complete",
+      "priority": "low",
+      "updated": "2026-04-10T09:14:23.726Z",
+      "category": "CC",
+      "milestone": "UC Picked up and delivered",
+      "dueDate": "2026-04-09",
+      "funding": "GPC",
+      "blockers": "None",
+      "notes": "None",
       "files": []
     },
     {
