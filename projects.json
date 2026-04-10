@@ -1,13 +1,17 @@
 {
-  "updated": "2026-04-10T09:44:02.437Z",
+  "updated": "2026-04-10T09:47:52.811Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "status": "not started",
+      "status": "in progress",
       "priority": "medium",
-      "updated": "2026-04-10T09:01:45.434Z",
+      "updated": "2026-04-10T09:47:52.811Z",
       "category": "Snacko",
+      "milestone": "Awaiting final design from vendor",
+      "dueDate": "2026-04-17",
+      "funding": "$924.95",
+      "notes": "Need to decide if engraving on coins from vendor or to be done here",
       "files": []
     },
     {
