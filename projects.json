@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T09:52:31.942Z",
+  "updated": "2026-04-10T09:55:08.351Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
@@ -74,15 +74,14 @@
     },
     {
       "name": "Tail Flash Wall",
-      "category": "",
-      "status": "not started",
+      "status": "planning",
       "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "updated": "2026-04-10T09:55:08.351Z",
+      "category": "Facilities",
+      "milestone": "Design ready, quote for nametag blocks ready. Need gpc swipe. Currently inventory all tail flashes",
+      "dueDate": "2026-04-30",
+      "funding": "~$3,000",
+      "notes": "DI Graves POC",
       "files": []
     }
   ]
