@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T09:51:15.920Z",
+  "updated": "2026-04-10T09:52:31.942Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
@@ -64,15 +64,12 @@
     },
     {
       "name": "Bar Renovations",
-      "category": "",
-      "status": "not started",
+      "status": "planning",
       "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "updated": "2026-04-10T09:52:31.942Z",
+      "milestone": "Received design and planning documents from Norwegians. Generating layouts and planning ideas. Do-It Graves POC",
+      "dueDate": "2026-05-15",
+      "funding": "~$10,000",
       "files": []
     },
     {
