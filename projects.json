@@ -1,17 +1,13 @@
 {
-  "updated": "2026-04-10T09:15:52.113Z",
+  "updated": "2026-04-10T09:16:37.197Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "status": "in progress",
+      "status": "not started",
       "priority": "medium",
-      "updated": "2026-04-10T09:15:52.113Z",
+      "updated": "2026-04-10T09:01:45.434Z",
       "category": "Snacko",
-      "milestone": "Quote generated. Awaiting design approval",
-      "dueDate": "2026-04-17",
-      "funding": "GPC?",
-      "notes": "Decide weather you'd like them engraved/numbered from the outset or to be engraved here",
       "files": []
     },
     {
@@ -29,15 +25,15 @@
     },
     {
       "name": "Lapel Pins",
-      "category": "",
-      "status": "not started",
-      "priority": "medium",
-      "milestone": "",
-      "dueDate": "",
-      "funding": "",
-      "blockers": "",
-      "notes": "",
-      "updated": "2026-04-10T00:00:00Z",
+      "status": "in progress",
+      "priority": "low",
+      "updated": "2026-04-10T09:16:37.197Z",
+      "category": "Snacko",
+      "milestone": "Awaiting Payment",
+      "dueDate": "2026-04-17",
+      "funding": "$300",
+      "blockers": "None",
+      "notes": "Simple reaper patch design",
       "files": []
     },
     {
