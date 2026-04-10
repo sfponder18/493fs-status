@@ -1,13 +1,17 @@
 {
-  "updated": "2026-04-10T09:14:23.726Z",
+  "updated": "2026-04-10T09:15:52.113Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "status": "not started",
+      "status": "in progress",
       "priority": "medium",
-      "updated": "2026-04-10T09:01:45.434Z",
+      "updated": "2026-04-10T09:15:52.113Z",
       "category": "Snacko",
+      "milestone": "Quote generated. Awaiting design approval",
+      "dueDate": "2026-04-17",
+      "funding": "GPC?",
+      "notes": "Decide weather you'd like them engraved/numbered from the outset or to be engraved here",
       "files": []
     },
     {
