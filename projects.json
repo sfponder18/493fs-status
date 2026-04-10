@@ -1,5 +1,97 @@
 {
-  "updated": "2026-04-01T00:00:00Z",
+  "updated": "2026-04-10T00:00:00Z",
   "squadron": "493rd Fighter Squadron",
-  "projects": []
+  "projects": [
+    {
+      "name": "RMO",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Stationery",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Lapel Pins",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Reaper Tracker",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Do-It Board",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Bar Renovations",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    },
+    {
+      "name": "Tail Flash Wall",
+      "category": "",
+      "status": "not started",
+      "priority": "medium",
+      "milestone": "",
+      "dueDate": "",
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "updated": "2026-04-10T00:00:00Z",
+      "files": []
+    }
+  ]
 }
