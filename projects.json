@@ -1,13 +1,17 @@
 {
-  "updated": "2026-04-10T09:16:37.197Z",
+  "updated": "2026-04-10T09:43:26.483Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
       "name": "RMO",
-      "status": "not started",
+      "status": "in progress",
       "priority": "medium",
-      "updated": "2026-04-10T09:01:45.434Z",
+      "updated": "2026-04-10T09:43:26.483Z",
       "category": "Snacko",
+      "milestone": "Waiting on design. Invoice generated and ready to be paid",
+      "dueDate": "2026-04-17",
+      "funding": "$924.95",
+      "blockers": "Design approval",
       "files": []
     },
     {
