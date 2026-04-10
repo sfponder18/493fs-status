@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T09:55:08.351Z",
+  "updated": "2026-04-10T10:30:18.001Z",
   "squadron": "493rd Fighter Squadron",
   "projects": [
     {
@@ -42,13 +42,22 @@
     },
     {
       "name": "Reaper Tracker",
+      "category": "Snacko",
       "status": "planning",
       "priority": "medium",
-      "updated": "2026-04-10T09:44:02.437Z",
-      "category": "Snacko",
       "milestone": "Design document to F-35 Reapers.",
       "dueDate": "2026-04-30",
-      "files": []
+      "funding": "",
+      "blockers": "",
+      "notes": "",
+      "files": [
+        {
+          "label": "tech_diagram_example.png",
+          "url": "https://raw.githubusercontent.com/sfponder18/493fs-status/main/uploads/reaper-tracker/1775817014056-tech_diagram_example.png",
+          "type": "image"
+        }
+      ],
+      "updated": "2026-04-10T10:30:18.001Z"
     },
     {
       "name": "Do-It Board",
